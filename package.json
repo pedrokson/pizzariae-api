@@ -1,0 +1,13 @@
+{
+  "name": "pizzaria-api",
+  "short_name": "PizzariaAPI",
+  "version": "1.0.0",
+  "description": "API REST para gerenciamento de pizzaria",
+  "main": "backend/app.js",
+  "scripts": {
+    "start": "cd backend && node app.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
