@@ -11,7 +11,7 @@ const corsOptions = {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:8080',
-    'https://pizzaria-frontend.azurestaticapps.net', // Substitua pela URL real do seu frontend
+    'https://mango-meadow-07492b31e.1.azurestaticapps.net', // URL do seu frontend no Azure
     'https://*.azurestaticapps.net',
     'https://*.azurewebsites.net'
   ],
