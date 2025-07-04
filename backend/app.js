@@ -5,7 +5,22 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
-app.use(cors());
+// Configuração CORS para Azure
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:8080',
+    'https://pizzaria-frontend.azurestaticapps.net', // Substitua pela URL real do seu frontend
+    'https://*.azurestaticapps.net',
+    'https://*.azurewebsites.net'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
   
 app.use(express.json());
 
@@ -40,7 +55,9 @@ app.get('/', (req, res) => {
   res.send('API da Pizzaria funcionando!');
 });
 
-const PORT = 3001;
+// Configuração da porta para Azure
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Backend rodando em http://localhost:${PORT}`);
+  console.log(`Backend rodando na porta ${PORT}`);
+  console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
 });
