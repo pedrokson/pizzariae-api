@@ -13,7 +13,7 @@ const usuarioSchema = new mongoose.Schema({
     required: [true, 'Email é obrigatório'],
     unique: true,
     lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
+    trim: true
   },
   senha: {
     type: String,
@@ -22,21 +22,16 @@ const usuarioSchema = new mongoose.Schema({
   },
   telefone: {
     type: String,
-    required: [true, 'Telefone é obrigatório'],
-    match: [/^\(\d{2}\)\s\d{4,5}-\d{4}$/, 'Formato: (11) 99999-9999']
+    required: [true, 'Telefone é obrigatório']
   },
   endereco: {
-    rua: { type: String, required: true },
-    numero: { type: String, required: true },
-    complemento: String,
-    bairro: { type: String, required: true },
-    cidade: { type: String, required: true },
-    cep: { 
-      type: String, 
-      required: true,
-      match: [/^\d{5}-?\d{3}$/, 'CEP inválido']
-    },
-    estado: { type: String, required: true, maxlength: 2 }
+    rua: { type: String, default: 'Não informado' },
+    numero: { type: String, default: 'S/N' },
+    complemento: { type: String, default: '' },
+    bairro: { type: String, default: 'Centro' },
+    cidade: { type: String, default: 'São Paulo' },
+    cep: { type: String, default: '00000-000' },
+    estado: { type: String, default: 'SP', maxlength: 2 }
   },
   tipo: {
     type: String,

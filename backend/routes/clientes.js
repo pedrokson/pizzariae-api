@@ -20,6 +20,11 @@ router.post('/cadastro', async (req, res) => {
     
     const { nome, telefone, endereco, email, senha } = req.body;
     
+    // Validações básicas
+    if (!nome || !telefone || !email || !senha) {
+      return res.json({ sucesso: false, erro: 'Todos os campos são obrigatórios' });
+    }
+    
     // Verificar se email já existe
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
@@ -27,11 +32,34 @@ router.post('/cadastro', async (req, res) => {
       return res.json({ sucesso: false, erro: 'E-mail já cadastrado!' });
     }
     
+    // Preparar estrutura de endereço
+    let enderecoCompleto = endereco;
+    if (typeof endereco === 'string') {
+      enderecoCompleto = {
+        rua: endereco,
+        numero: 'S/N',
+        bairro: 'Centro',
+        cidade: 'São Paulo',
+        cep: '00000-000',
+        estado: 'SP'
+      };
+    } else if (endereco && !endereco.bairro) {
+      enderecoCompleto = {
+        rua: endereco.rua || 'Rua sem nome',
+        numero: endereco.numero || 'S/N',
+        complemento: endereco.complemento || '',
+        bairro: 'Centro',
+        cidade: 'São Paulo', 
+        cep: '00000-000',
+        estado: 'SP'
+      };
+    }
+    
     // Criar novo usuário
     const novoUsuario = new Usuario({
       nome,
       telefone,
-      endereco,
+      endereco: enderecoCompleto,
       email,
       senha,
       tipo: 'cliente'
@@ -40,7 +68,7 @@ router.post('/cadastro', async (req, res) => {
     await novoUsuario.save();
     console.log('Cliente cadastrado com sucesso');
     
-    res.json({ sucesso: true, cliente: novoUsuario });
+    res.json({ sucesso: true, _id: novoUsuario._id, nome: novoUsuario.nome });
   } catch (error) {
     console.error('Erro ao cadastrar:', error);
     res.json({ sucesso: false, erro: error.message });
