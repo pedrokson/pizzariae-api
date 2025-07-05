@@ -1,24 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const path = require('path');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const app = express();
 
-console.log('🚀 API da Pizzaria - Híbrido MongoDB + Memória!');
+console.log('🚀 API da Pizzaria - Backend Híbrido MongoDB + Memória!');
 
-// CORS configurado para aceitar o frontend
+// CORS configurado para aceitar requisições de qualquer origem
 app.use(cors({
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
-
-// Servir arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, '..')));
 
 // Middlewares de parsing
 app.use(express.json({ limit: '10mb' }));
@@ -39,13 +35,24 @@ console.log('✅ MIDDLEWARES CONFIGURADOS');
 let mongoConnected = false;
 
 // Conectar MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+console.log('🔌 Tentando conectar MongoDB...');
+console.log('🌐 URI:', process.env.MONGODB_URI ? 'Definida' : 'NÃO DEFINIDA');
+console.log('🔗 URI completa:', process.env.MONGODB_URI);
+
+// Força a URI do Atlas se a variável não estiver definida
+const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://pedrosutil2530sutil:pizzaria123@pizzaria-cluster.k8wkpvm.mongodb.net/pizzaria?retryWrites=true&w=majority';
+console.log('🎯 URI que será usada:', mongoUri);
+
+mongoose.connect(mongoUri, {
+  serverSelectionTimeoutMS: 15000, // 15 segundos para timeout
+  connectTimeoutMS: 15000
+})
   .then(() => {
-    console.log('✅ MongoDB conectado!');
+    console.log('✅ MongoDB conectado com sucesso!');
     mongoConnected = true;
   })
   .catch(err => {
-    console.log('⚠️ MongoDB não conectado:', err.message);
+    console.log('❌ MongoDB não conectou:', err.name, '-', err.message);
     console.log('🔄 Usando banco de dados em memória como fallback');
     mongoConnected = false;
   });
