@@ -8,9 +8,17 @@ const app = express();
 
 console.log('🚀 API da Pizzaria - Backend Híbrido MongoDB + Memória!');
 
-// CORS configurado para aceitar requisições de qualquer origem
+// CORS configurado para aceitar requisições (produção + desenvolvimento)
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5000', 
+  'http://localhost:8080',
+  process.env.FRONTEND_URL,
+  'https://pizzaria-frontend.azurewebsites.net' // substitua pelo seu domínio
+].filter(Boolean);
+
 app.use(cors({
-  origin: true,
+  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
