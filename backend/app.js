@@ -31,6 +31,14 @@ app.use((req, res, next) => {
 
 console.log('✅ MIDDLEWARES CONFIGURADOS');
 
+// Importar modelos
+const Usuario = require('./models/Usuario');
+const Produto = require('./models/Produto');
+const Pedido = require('./models/Pedido');
+
+// Importar rotas
+const pedidosRoutes = require('./routes/pedidos');
+
 // Variável para controlar se MongoDB está conectado
 let mongoConnected = false;
 
@@ -56,17 +64,6 @@ mongoose.connect(mongoUri, {
     console.log('🔄 Usando banco de dados em memória como fallback');
     mongoConnected = false;
   });
-
-// Carregar modelos do MongoDB
-let Usuario, Produto;
-try {
-  console.log('📁 Carregando modelos MongoDB...');
-  Usuario = require('./models/Usuario');
-  Produto = require('./models/Produto');
-  console.log('✅ Modelos MongoDB carregados');
-} catch (error) {
-  console.log('⚠️ Erro ao carregar modelos:', error.message);
-}
 
 // Banco de dados em memória
 let usuarios = [];
@@ -377,8 +374,11 @@ app.get('/api/database', async (req, res) => {
   }
 });
 
+// Usar rotas de pedidos
+app.use('/api/pedidos', pedidosRoutes);
+
 // Iniciar servidor
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
   console.log('🚀 BACKEND HÍBRIDO INICIADO!');
@@ -387,7 +387,9 @@ app.listen(PORT, () => {
   console.log(`👥 Cadastro: POST http://localhost:${PORT}/api/clientes/cadastro`);
   console.log(`🔐 Login: POST http://localhost:${PORT}/api/clientes/login`);
   console.log(`🍕 Produtos: GET http://localhost:${PORT}/api/produtos`);
-  console.log(`🗃️ Database: GET http://localhost:${PORT}/database`);
+  console.log(`� Pedidos: GET http://localhost:${PORT}/api/pedidos`);
+  console.log(`📝 Criar Pedido: POST http://localhost:${PORT}/api/pedidos`);
+  console.log(`�🗃️ Database: GET http://localhost:${PORT}/api/database`);
   console.log('');
   if (mongoConnected) {
     console.log('✅ MongoDB Conectado - Usando banco real');
