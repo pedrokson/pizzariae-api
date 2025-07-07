@@ -1,5 +1,5 @@
 {
-  "name": "pizzaria-api",
+  "name": "pizzaria-backend",
   "version": "1.0.0",
   "main": "app.js",
   "engines": {
@@ -8,11 +8,13 @@
   },
   "scripts": {
     "start": "node app.js",
-    "build": "npm install",
-    "dev": "node app.js"
+    "dev": "node app.js",
+    "build": "echo 'Build completed'",
+    "seed": "node seed.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["pizzaria", "backend", "api", "node", "express", "mongodb"],
-  "author": "Pedro", 
+  "author": "Pedro",
   "license": "ISC",
   "description": "Backend API da Pizzaria - Sistema híbrido MongoDB + Memória",
   "dependencies": {
