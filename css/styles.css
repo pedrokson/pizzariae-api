@@ -203,6 +203,95 @@ nav {
   margin: 2rem 0;
 }
 
+/* ===== CORREÇÃO DEFINITIVA DE SCROLL ===== */
+
+/* Garantir que TODAS as páginas podem fazer scroll */
+html, body {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scroll-behavior: smooth !important;
+}
+
+/* Remover qualquer limitação de altura em containers */
+.container,
+.main-container,
+.content-container,
+.page-container {
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Formulários e modais - scroll livre */
+.form-container,
+.login-container,
+.pedido-container,
+.modal-container,
+.dados-entrega,
+.checkout-container {
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: 50px !important;
+}
+
+/* Inputs e textareas */
+input, textarea, select {
+  height: auto !important;
+  min-height: 40px !important;
+  max-height: none !important;
+}
+
+/* Grid e flex containers */
+.form-row,
+.grid-container,
+.flex-container {
+  height: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* Botões de submit no final */
+.submit-section,
+.button-section {
+  margin-top: 30px !important;
+  padding-bottom: 50px !important;
+}
+
+/* Espaçamento extra no final de páginas */
+.page-end {
+  height: 100px !important;
+  clear: both !important;
+}
+
+/* Mobile - ainda mais espaço */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 100px !important;
+  }
+  
+  .form-container,
+  .login-container,
+  .pedido-container,
+  .dados-entrega {
+    padding-bottom: 80px !important;
+    margin-bottom: 50px !important;
+  }
+}
+
+/* Para telas muito pequenas */
+@media (max-height: 600px) {
+  body {
+    padding-bottom: 150px !important;
+  }
+}
+
+/* ===== FIM CORREÇÃO SCROLL ===== */
+
 /* Responsivo */
 @media (max-width: 768px) {
   .nav-links {
