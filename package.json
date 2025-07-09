@@ -6,7 +6,7 @@
     "start": "node app.js",
     "dev": "node app.js",
     "build": "npm install",
-    "test": "echo \"Tests passed successfully\""
+    "test": "node test.js"
   },
   "keywords": ["pizzaria", "api", "nodejs", "express"],
   "author": "",
