@@ -8,20 +8,13 @@ const app = express();
 
 console.log('🚀 API da Pizzaria - Backend Híbrido MongoDB + Memória!');
 
-// CORS configurado para aceitar requisições (produção + desenvolvimento)
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5000', 
-  'http://localhost:8080',
-  process.env.FRONTEND_URL,
-  'https://pizzaria-frontend.azurewebsites.net' // substitua pelo seu domínio
-].filter(Boolean);
-
+// CORS configurado para aceitar requisições de qualquer origem
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'
+  ]
 }));
 
 // Middlewares de parsing
@@ -38,14 +31,6 @@ app.use((req, res, next) => {
 });
 
 console.log('✅ MIDDLEWARES CONFIGURADOS');
-
-// Importar modelos
-const Usuario = require('./models/Usuario');
-const Produto = require('./models/Produto');
-const Pedido = require('./models/Pedido');
-
-// Importar rotas
-const pedidosRoutes = require('./routes/pedidos');
 
 // Variável para controlar se MongoDB está conectado
 let mongoConnected = false;
@@ -72,6 +57,17 @@ mongoose.connect(mongoUri, {
     console.log('🔄 Usando banco de dados em memória como fallback');
     mongoConnected = false;
   });
+
+// Carregar modelos do MongoDB
+let Usuario, Produto;
+try {
+  console.log('📁 Carregando modelos MongoDB...');
+  Usuario = require('./models/Usuario');
+  Produto = require('./models/Produto');
+  console.log('✅ Modelos MongoDB carregados');
+} catch (error) {
+  console.log('⚠️ Erro ao carregar modelos:', error.message);
+}
 
 // Banco de dados em memória
 let usuarios = [];
@@ -382,11 +378,17 @@ app.get('/api/database', async (req, res) => {
   }
 });
 
-// Usar rotas de pedidos
-app.use('/api/pedidos', pedidosRoutes);
+// Carregar e usar rotas de pedidos
+try {
+  const pedidosRoutes = require('./routes/pedidos');
+  app.use('/api/pedidos', pedidosRoutes);
+  console.log('✅ ROTAS DE PEDIDOS CARREGADAS');
+} catch (error) {
+  console.log('⚠️ Erro ao carregar rotas de pedidos:', error.message);
+}
 
 // Iniciar servidor
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log('🚀 BACKEND HÍBRIDO INICIADO!');
@@ -395,9 +397,7 @@ app.listen(PORT, () => {
   console.log(`👥 Cadastro: POST http://localhost:${PORT}/api/clientes/cadastro`);
   console.log(`🔐 Login: POST http://localhost:${PORT}/api/clientes/login`);
   console.log(`🍕 Produtos: GET http://localhost:${PORT}/api/produtos`);
-  console.log(`� Pedidos: GET http://localhost:${PORT}/api/pedidos`);
-  console.log(`📝 Criar Pedido: POST http://localhost:${PORT}/api/pedidos`);
-  console.log(`�🗃️ Database: GET http://localhost:${PORT}/api/database`);
+  console.log(`🗃️ Database: GET http://localhost:${PORT}/database`);
   console.log('');
   if (mongoConnected) {
     console.log('✅ MongoDB Conectado - Usando banco real');

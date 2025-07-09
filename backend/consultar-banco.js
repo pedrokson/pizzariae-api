@@ -1,5 +1,26 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
+require('dote    console.log('=====================================');
+    
+    // Consultar pedidos
+    try {
+      const Pedido = require('./models/Pedido');
+      const pedidos = await Pedido.find({});
+      console.log(`📦 PEDIDOS (${pedidos.length} encontrados):`);
+      pedidos.forEach((pedido, index) => {
+        console.log(`  ${index + 1}. ID: ${pedido._id}`);
+        console.log(`     Número: ${pedido.numero}`);
+        console.log(`     Cliente: ${pedido.cliente}`);
+        console.log(`     Status: ${pedido.status}`);
+        console.log(`     Total: R$ ${pedido.valores?.total || 'N/A'}`);
+        console.log(`     Data: ${pedido.createdAt}`);
+        console.log('     ---');
+      });
+    } catch (error) {
+      console.log('⚠️ Erro ao consultar pedidos:', error.message);
+    }
+    
+    console.log('=====================================');
+    console.log('✅ Consulta finalizada!');').config();
 
 // Conectar ao MongoDB
 mongoose.connect(process.env.MONGODB_URI)
