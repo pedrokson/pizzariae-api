@@ -211,4 +211,156 @@ router.post('/:id/avaliacao', async (req, res) => {
   }
 });
 
-module.exports = router;
+// GET /api/pedidos/:id/imprimir - Formatar pedido para impressão térmica
+router.get('/:id/imprimir', async (req, res) => {
+  try {
+    const pedido = await Pedido.findById(req.params.id)
+      .populate('cliente', 'nome telefone email endereco')
+      .populate('itens.produto', 'nome categoria descricao');
+    
+    if (!pedido) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
+
+    // Formato para impressora térmica (58mm) - 48 caracteres
+    const linha = "================================================";
+    const linhaPequena = "--------------------------------";
+    
+    let texto = "";
+    
+    // Cabeçalho da pizzaria
+    texto += "================================================\n";
+    texto += "            🍕 JERÔNIMU'S PIZZA 🍕\n";
+    texto += "         Rua das Pizzas, 123 - Centro\n";
+    texto += "         Tel: (11) 99999-9999\n";
+    texto += "================================================\n";
+    texto += "\n";
+    
+    // Informações do pedido
+    texto += `PEDIDO: #${pedido.numero}\n`;
+    texto += `DATA: ${new Date(pedido.createdAt).toLocaleString('pt-BR')}\n`;
+    texto += `STATUS: ${pedido.status.toUpperCase()}\n`;
+    texto += "\n";
+    texto += linhaPequena + "\n";
+    texto += "           DADOS DO CLIENTE\n";
+    texto += linhaPequena + "\n";
+    texto += `NOME: ${pedido.cliente.nome}\n`;
+    texto += `FONE: ${pedido.cliente.telefone}\n`;
+    if (pedido.cliente.email) {
+      texto += `EMAIL: ${pedido.cliente.email}\n`;
+    }
+    texto += "\n";
+    
+    // Endereço de entrega
+    if (pedido.entrega.tipo === 'delivery' && pedido.endereco) {
+      texto += linhaPequena + "\n";
+      texto += "         ENDEREÇO DE ENTREGA\n";
+      texto += linhaPequena + "\n";
+      texto += `${pedido.endereco.rua}, ${pedido.endereco.numero}\n`;
+      if (pedido.endereco.complemento) {
+        texto += `COMPL: ${pedido.endereco.complemento}\n`;
+      }
+      texto += `BAIRRO: ${pedido.endereco.bairro}\n`;
+      texto += `CIDADE: ${pedido.endereco.cidade}\n`;
+      texto += `CEP: ${pedido.endereco.cep}\n`;
+      if (pedido.endereco.pontoReferencia) {
+        texto += `REF: ${pedido.endereco.pontoReferencia}\n`;
+      }
+      texto += "\n";
+    } else {
+      texto += linhaPequena + "\n";
+      texto += "           🚶 RETIRADA NO LOCAL\n";
+      texto += linhaPequena + "\n";
+      texto += "\n";
+    }
+    
+    // Itens do pedido
+    texto += "================================================\n";
+    texto += "                  PEDIDO\n";
+    texto += "================================================\n";
+    
+    pedido.itens.forEach((item, index) => {
+      texto += `${index + 1}. ${item.nome.toUpperCase()}\n`;
+      if (item.tamanho) {
+        texto += `   TAMANHO: ${item.tamanho}\n`;
+      }
+      texto += `   QTD: ${item.quantidade}x  VALOR: R$ ${item.precoUnitario.toFixed(2)}\n`;
+      texto += `   SUBTOTAL: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}\n`;
+      if (item.observacoes) {
+        texto += `   OBS: ${item.observacoes}\n`;
+      }
+      texto += linhaPequena + "\n";
+    });
+    
+    // Observações gerais
+    if (pedido.observacoes) {
+      texto += "\n";
+      texto += "OBSERVAÇÕES GERAIS:\n";
+      texto += `${pedido.observacoes}\n`;
+      texto += "\n";
+    }
+    
+    // Totais
+    texto += "================================================\n";
+    texto += "                 VALORES\n";
+    texto += "================================================\n";
+    texto += `SUBTOTAL:           R$ ${pedido.valores.subtotal.toFixed(2)}\n`;
+    if (pedido.valores.taxaEntrega > 0) {
+      texto += `TAXA ENTREGA:       R$ ${pedido.valores.taxaEntrega.toFixed(2)}\n`;
+    }
+    if (pedido.valores.desconto > 0) {
+      texto += `DESCONTO:          -R$ ${pedido.valores.desconto.toFixed(2)}\n`;
+    }
+    texto += linhaPequena + "\n";
+    texto += `TOTAL:              R$ ${pedido.valores.total.toFixed(2)}\n`;
+    texto += "================================================\n";
+    
+    // Forma de pagamento
+    texto += "\n";
+    texto += `💳 PAGAMENTO: ${pedido.formaPagamento.toUpperCase()}\n`;
+    if (pedido.entrega.tipo === 'delivery') {
+      texto += "⏰ TEMPO ESTIMADO: 45-60 MIN\n";
+    } else {
+      texto += "⏰ TEMPO ESTIMADO: 20-30 MIN\n";
+    }
+    texto += "\n";
+    
+    // Rodapé
+    texto += "================================================\n";
+    texto += "          OBRIGADO PELA PREFERÊNCIA!\n";
+    texto += "               Volte sempre! 😊\n";
+    texto += "================================================\n";
+    texto += "\n";
+    texto += `Impresso em: ${new Date().toLocaleString('pt-BR')}\n`;
+    texto += "\n\n\n"; // Espaço para corte do papel
+    
+    // Retornar como texto simples para impressão
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.send(texto);
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/pedidos/:id/imprimir-html - Versão HTML para impressão web
+router.get('/:id/imprimir-html', async (req, res) => {
+  try {
+    const pedido = await Pedido.findById(req.params.id)
+      .populate('cliente', 'nome telefone email endereco')
+      .populate('itens.produto', 'nome categoria descricao');
+    
+    if (!pedido) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
+
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Pedido #${pedido.numero}</title>
+        <style>
+            @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
