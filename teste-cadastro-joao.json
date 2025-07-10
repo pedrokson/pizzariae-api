@@ -1,0 +1,15 @@
+{
+  "nome": "joao",
+  "telefone": "43991507810",
+  "endereco": {
+    "rua": "Rua Luis perusso sobrinho",
+    "numero": "61",
+    "complemento": "",
+    "bairro": "Centro",
+    "cidade": "São Paulo", 
+    "cep": "00000-000",
+    "estado": "SP"
+  },
+  "email": "joao.teste.novo@gmail.com",
+  "senha": "123456"
+}

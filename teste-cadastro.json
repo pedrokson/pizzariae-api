@@ -1,0 +1,15 @@
+{
+  "nome": "Joao Teste Manual",
+  "telefone": "43991507810",
+  "endereco": {
+    "rua": "Rua Luis Perusso Sobrinho",
+    "numero": "61",
+    "complemento": "",
+    "bairro": "Centro",
+    "cidade": "São Paulo",
+    "cep": "00000-000",
+    "estado": "SP"
+  },
+  "email": "joao.novo.teste@gmail.com",
+  "senha": "123456"
+}

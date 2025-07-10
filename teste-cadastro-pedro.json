@@ -1,0 +1,15 @@
+{
+  "nome": "pedro henrique",
+  "telefone": "43991310616",
+  "endereco": {
+    "rua": "Rua Luis perusso sobrinho",
+    "numero": "61",
+    "complemento": "",
+    "bairro": "Centro",
+    "cidade": "São Paulo",
+    "cep": "00000-000",
+    "estado": "SP"
+  },
+  "email": "prdesil156@gmail.com",
+  "senha": "123456"
+}

@@ -14,7 +14,8 @@ const allowedOrigins = [
   'http://localhost:5000', 
   'http://localhost:8080',
   process.env.FRONTEND_URL,
-  'https://pizzaria-frontend.azurewebsites.net' // substitua pelo seu domínio
+  'https://pizzaria-frontend.azurewebsites.net',
+  'https://thankful-bay-039b7071e.2.azurestaticapps.net' // frontend publicado
 ].filter(Boolean);
 
 app.use(cors({
