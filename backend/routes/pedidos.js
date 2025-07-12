@@ -111,6 +111,51 @@ router.post('/', async (req, res) => {
       itensProcessados.push(itemProcessado);
     }
     
+    for (let item of itens) {
+      if (item.tipo === 'personalizada') {
+        // Pizza personalizada
+        const precoPersonalizada = 49.90; // valor fixo por unidade
+        const itemProcessado = {
+          tipo: 'personalizada',
+          metade1: item.metade1,
+          metade2: item.metade2,
+          tamanho: item.tamanho,
+          borda: item.borda,
+          quantidade: item.quantidade,
+          precoUnitario: precoPersonalizada,
+          preco: precoPersonalizada * item.quantidade
+        };
+        subtotal += precoPersonalizada * item.quantidade;
+        itensProcessados.push(itemProcessado);
+      } else {
+        // Item normal
+        console.log('🔍 Processando item:', item);
+        const produto = await Produto.findById(item.produto);
+        if (!produto) {
+          console.log('❌ Produto não encontrado:', item.produto);
+          return res.status(400).json({ error: `Produto ${item.produto} não encontrado` });
+        }
+        console.log('✅ Produto encontrado:', produto.nome);
+        // Se tem tamanho específico, buscar preço do tamanho
+        let precoUnitario = item.precoUnitario;
+        if (item.tamanho && produto.tamanhos.length > 0) {
+          const tamanhoInfo = produto.tamanhos.find(t => t.nome === item.tamanho);
+          if (tamanhoInfo) {
+            precoUnitario = tamanhoInfo.preco;
+          }
+        }
+        const itemProcessado = {
+          produto: produto._id,
+          nome: produto.nome,
+          tamanho: item.tamanho,
+          quantidade: item.quantidade,
+          precoUnitario: precoUnitario,
+          observacoes: item.observacoes
+        };
+        subtotal += precoUnitario * item.quantidade;
+        itensProcessados.push(itemProcessado);
+      }
+    }
     // Calcular taxa de entrega (exemplo: R$ 5,00 para delivery)
     const taxaEntrega = entrega.tipo === 'delivery' ? 5.00 : 0;
     
@@ -280,16 +325,33 @@ router.get('/:id/imprimir', async (req, res) => {
     texto += "================================================\n";
     
     pedido.itens.forEach((item, index) => {
-      texto += `${index + 1}. ${item.nome.toUpperCase()}\n`;
-      if (item.tamanho) {
-        texto += `   TAMANHO: ${item.tamanho}\n`;
+      if (item.tipo === 'personalizada') {
+        texto += `${index + 1}. PIZZA PERSONALIZADA\n`;
+        texto += `   METADE 1: ${item.metade1}\n`;
+        texto += `   METADE 2: ${item.metade2}\n`;
+        if (item.tamanho) {
+          texto += `   TAMANHO: ${item.tamanho}\n`;
+        }
+        if (item.borda && item.borda !== '') {
+          texto += `   BORDA: ${item.borda}\n`;
+        } else {
+          texto += `   BORDA: Sem borda\n`;
+        }
+        texto += `   QTD: ${item.quantidade}x  VALOR: R$ ${item.precoUnitario.toFixed(2)}\n`;
+        texto += `   SUBTOTAL: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}\n`;
+        texto += linhaPequena + "\n";
+      } else {
+        texto += `${index + 1}. ${item.nome.toUpperCase()}\n`;
+        if (item.tamanho) {
+          texto += `   TAMANHO: ${item.tamanho}\n`;
+        }
+        texto += `   QTD: ${item.quantidade}x  VALOR: R$ ${item.precoUnitario.toFixed(2)}\n`;
+        texto += `   SUBTOTAL: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}\n`;
+        if (item.observacoes) {
+          texto += `   OBS: ${item.observacoes}\n`;
+        }
+        texto += linhaPequena + "\n";
       }
-      texto += `   QTD: ${item.quantidade}x  VALOR: R$ ${item.precoUnitario.toFixed(2)}\n`;
-      texto += `   SUBTOTAL: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}\n`;
-      if (item.observacoes) {
-        texto += `   OBS: ${item.observacoes}\n`;
-      }
-      texto += linhaPequena + "\n";
     });
     
     // Observações gerais
@@ -354,6 +416,33 @@ router.get('/:id/imprimir-html', async (req, res) => {
       return res.status(404).json({ error: 'Pedido não encontrado' });
     }
 
+    let itensHtml = '';
+    pedido.itens.forEach((item, index) => {
+      if (item.tipo === 'personalizada') {
+        itensHtml += `<div style='margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:5px;'>`;
+        itensHtml += `<strong>${index + 1}. Pizza Personalizada</strong><br>`;
+        itensHtml += `Metade 1: ${item.metade1}<br>`;
+        itensHtml += `Metade 2: ${item.metade2}<br>`;
+        if (item.tamanho) itensHtml += `Tamanho: ${item.tamanho}<br>`;
+        if (item.borda && item.borda !== '') {
+          itensHtml += `Borda: ${item.borda}<br>`;
+        } else {
+          itensHtml += `Borda: Sem borda<br>`;
+        }
+        itensHtml += `Qtd: ${item.quantidade}x &nbsp; Valor: R$ ${item.precoUnitario.toFixed(2)}<br>`;
+        itensHtml += `Subtotal: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}<br>`;
+        itensHtml += `</div>`;
+      } else {
+        itensHtml += `<div style='margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:5px;'>`;
+        itensHtml += `<strong>${index + 1}. ${item.nome}</strong><br>`;
+        if (item.tamanho) itensHtml += `Tamanho: ${item.tamanho}<br>`;
+        itensHtml += `Qtd: ${item.quantidade}x &nbsp; Valor: R$ ${item.precoUnitario.toFixed(2)}<br>`;
+        itensHtml += `Subtotal: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}<br>`;
+        if (item.observacoes) itensHtml += `Obs: ${item.observacoes}<br>`;
+        itensHtml += `</div>`;
+      }
+    });
+
     const html = `
     <!DOCTYPE html>
     <html>
@@ -364,3 +453,29 @@ router.get('/:id/imprimir-html', async (req, res) => {
             @media print {
                 body { margin: 0; }
                 .no-print { display: none; }
+            }
+            body { font-family: Arial, sans-serif; }
+            .pedido-header { margin-bottom: 20px; }
+        </style>
+    </head>
+    <body>
+        <div class="pedido-header">
+            <h1>Pedido #${pedido.numero}</h1>
+            <p><strong>Cliente:</strong> ${pedido.cliente.nome} - ${pedido.cliente.telefone}</p>
+            <p><strong>Status:</strong> ${pedido.status.toUpperCase()}</p>
+            <p><strong>Data:</strong> ${new Date(pedido.createdAt).toLocaleString('pt-BR')}</p>
+        </div>
+        <h2>Itens do Pedido</h2>
+        ${itensHtml}
+        <h2>Valores</h2>
+        <p>Subtotal: R$ ${pedido.valores.subtotal.toFixed(2)}</p>
+        ${pedido.valores.taxaEntrega > 0 ? `<p>Taxa Entrega: R$ ${pedido.valores.taxaEntrega.toFixed(2)}</p>` : ''}
+        ${pedido.valores.desconto > 0 ? `<p>Desconto: -R$ ${pedido.valores.desconto.toFixed(2)}</p>` : ''}
+        <p><strong>Total: R$ ${pedido.valores.total.toFixed(2)}</strong></p>
+        <h2>Pagamento</h2>
+        <p>${pedido.formaPagamento.tipo ? pedido.formaPagamento.tipo.toUpperCase() : pedido.formaPagamento}</p>
+        <h2>Observações</h2>
+        <p>${pedido.observacoes || ''}</p>
+    </body>
+    </html>
+    `;
