@@ -1,8 +1,30 @@
-// Funções utilitárias para pizza personalizada
+// Tabela de preços dos sabores (exemplo, adapte para seu banco/dados)
+const precosSabores = {
+  bacon: { Média: 49.9, Grande: 59.9, default: 49.9 },
+  portuguesa: { Média: 49.9, Grande: 59.9, default: 49.9 },
+  '4queijos': { Média: 54.9, Grande: 64.9, default: 54.9 },
+  // ...adicione todos os sabores
+  // doces também!
+};
 
-const PRECO_FIXO_PERSONALIZADA = 49.90;
+const precosBorda = {
+  'Catupiry': 7,
+  'Cheddar': 7,
+  'Chocolate': 8,
+  'Cream Cheese': 8
+};
 
+// Função para calcular preço da pizza personalizada
+function calcularPrecoPersonalizada(metade1, metade2, tamanho, borda) {
+  const precoMetade1 = (precosSabores[metade1] && precosSabores[metade1][tamanho]) ? precosSabores[metade1][tamanho] : precosSabores[metade1]?.default || 49.9;
+  const precoMetade2 = (precosSabores[metade2] && precosSabores[metade2][tamanho]) ? precosSabores[metade2][tamanho] : precosSabores[metade2]?.default || 49.9;
+  const precoBorda = borda && borda !== '' && borda !== 'Sem borda' ? (precosBorda[borda] || 0) : 0;
+  return (precoMetade1 / 2) + (precoMetade2 / 2) + precoBorda;
+}
+
+// Exemplo de uso no processamento do pedido
 function processarItemPersonalizado(item) {
+  const precoUnitario = calcularPrecoPersonalizada(item.metade1, item.metade2, item.tamanho, item.borda);
   return {
     tipo: 'personalizada',
     metade1: item.metade1,
@@ -10,11 +32,12 @@ function processarItemPersonalizado(item) {
     tamanho: item.tamanho,
     borda: item.borda,
     quantidade: item.quantidade,
-    precoUnitario: PRECO_FIXO_PERSONALIZADA,
-    preco: PRECO_FIXO_PERSONALIZADA * item.quantidade
+    precoUnitario,
+    preco: precoUnitario * item.quantidade
   };
 }
 
+// Função para gerar HTML (opcional)
 function gerarHtmlPersonalizada(item, index) {
   return `<div style='margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:5px;'>`
     + `<strong>${index + 1}. Pizza Personalizada</strong><br>`
@@ -27,6 +50,7 @@ function gerarHtmlPersonalizada(item, index) {
     + `</div>`;
 }
 
+// Função para gerar texto (opcional)
 function gerarTextoPersonalizada(item, index, linhaPequena) {
   let texto = `${index + 1}. PIZZA PERSONALIZADA\n`;
   texto += `   METADE 1: ${item.metade1}\n`;
@@ -44,7 +68,9 @@ function gerarTextoPersonalizada(item, index, linhaPequena) {
 }
 
 module.exports = {
-  PRECO_FIXO_PERSONALIZADA,
+  precosSabores,
+  precosBorda,
+  calcularPrecoPersonalizada,
   processarItemPersonalizado,
   gerarHtmlPersonalizada,
   gerarTextoPersonalizada
