@@ -3,6 +3,12 @@ const router = express.Router();
 const Pedido = require('../models/Pedido');
 const Usuario = require('../models/Usuario');
 const Produto = require('../models/Produto');
+const {
+  PRECO_FIXO_PERSONALIZADA,
+  processarItemPersonalizado,
+  gerarHtmlPersonalizada,
+  gerarTextoPersonalizada
+} = require('../utils/pizzaPersonalizada');
 
 // GET /api/pedidos - Listar todos os pedidos
 router.get('/', async (req, res) => {
@@ -113,19 +119,8 @@ router.post('/', async (req, res) => {
     
     for (let item of itens) {
       if (item.tipo === 'personalizada') {
-        // Pizza personalizada
-        const precoPersonalizada = 49.90; // valor fixo por unidade
-        const itemProcessado = {
-          tipo: 'personalizada',
-          metade1: item.metade1,
-          metade2: item.metade2,
-          tamanho: item.tamanho,
-          borda: item.borda,
-          quantidade: item.quantidade,
-          precoUnitario: precoPersonalizada,
-          preco: precoPersonalizada * item.quantidade
-        };
-        subtotal += precoPersonalizada * item.quantidade;
+        const itemProcessado = processarItemPersonalizado(item);
+        subtotal += itemProcessado.preco;
         itensProcessados.push(itemProcessado);
       } else {
         // Item normal
@@ -326,20 +321,7 @@ router.get('/:id/imprimir', async (req, res) => {
     
     pedido.itens.forEach((item, index) => {
       if (item.tipo === 'personalizada') {
-        texto += `${index + 1}. PIZZA PERSONALIZADA\n`;
-        texto += `   METADE 1: ${item.metade1}\n`;
-        texto += `   METADE 2: ${item.metade2}\n`;
-        if (item.tamanho) {
-          texto += `   TAMANHO: ${item.tamanho}\n`;
-        }
-        if (item.borda && item.borda !== '') {
-          texto += `   BORDA: ${item.borda}\n`;
-        } else {
-          texto += `   BORDA: Sem borda\n`;
-        }
-        texto += `   QTD: ${item.quantidade}x  VALOR: R$ ${item.precoUnitario.toFixed(2)}\n`;
-        texto += `   SUBTOTAL: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}\n`;
-        texto += linhaPequena + "\n";
+        texto += gerarTextoPersonalizada(item, index, linhaPequena);
       } else {
         texto += `${index + 1}. ${item.nome.toUpperCase()}\n`;
         if (item.tamanho) {
@@ -419,19 +401,7 @@ router.get('/:id/imprimir-html', async (req, res) => {
     let itensHtml = '';
     pedido.itens.forEach((item, index) => {
       if (item.tipo === 'personalizada') {
-        itensHtml += `<div style='margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:5px;'>`;
-        itensHtml += `<strong>${index + 1}. Pizza Personalizada</strong><br>`;
-        itensHtml += `Metade 1: ${item.metade1}<br>`;
-        itensHtml += `Metade 2: ${item.metade2}<br>`;
-        if (item.tamanho) itensHtml += `Tamanho: ${item.tamanho}<br>`;
-        if (item.borda && item.borda !== '') {
-          itensHtml += `Borda: ${item.borda}<br>`;
-        } else {
-          itensHtml += `Borda: Sem borda<br>`;
-        }
-        itensHtml += `Qtd: ${item.quantidade}x &nbsp; Valor: R$ ${item.precoUnitario.toFixed(2)}<br>`;
-        itensHtml += `Subtotal: R$ ${(item.quantidade * item.precoUnitario).toFixed(2)}<br>`;
-        itensHtml += `</div>`;
+        itensHtml += gerarHtmlPersonalizada(item, index);
       } else {
         itensHtml += `<div style='margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:5px;'>`;
         itensHtml += `<strong>${index + 1}. ${item.nome}</strong><br>`;
