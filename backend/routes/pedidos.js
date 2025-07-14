@@ -448,4 +448,12 @@ router.get('/:id/imprimir-html', async (req, res) => {
         <p>${pedido.observacoes || ''}</p>
     </body>
     </html>
-    `;
+        `;
+    
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(html);
+    
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
+    });
