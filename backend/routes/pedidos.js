@@ -87,43 +87,11 @@ router.post('/', async (req, res) => {
     const itensProcessados = [];
     
     for (let item of itens) {
-      console.log('🔍 Processando item:', item);
-      const produto = await Produto.findById(item.produto);
-      if (!produto) {
-        console.log('❌ Produto não encontrado:', item.produto);
-        return res.status(400).json({ error: `Produto ${item.produto} não encontrado` });
-      }
-      console.log('✅ Produto encontrado:', produto.nome);
-      
-      // Se tem tamanho específico, buscar preço do tamanho
-      let precoUnitario = item.precoUnitario;
-      if (item.tamanho && produto.tamanhos.length > 0) {
-        const tamanhoInfo = produto.tamanhos.find(t => t.nome === item.tamanho);
-        if (tamanhoInfo) {
-          precoUnitario = tamanhoInfo.preco;
-        }
-      }
-      
-      const itemProcessado = {
-        produto: produto._id,
-        nome: produto.nome,
-        tamanho: item.tamanho,
-        quantidade: item.quantidade,
-        precoUnitario: precoUnitario,
-        observacoes: item.observacoes
-      };
-      
-      subtotal += precoUnitario * item.quantidade;
-      itensProcessados.push(itemProcessado);
-    }
-    
-    for (let item of itens) {
       if (item.tipo === 'personalizada') {
         const itemProcessado = processarItemPersonalizado(item);
         subtotal += itemProcessado.preco;
         itensProcessados.push(itemProcessado);
       } else {
-        // Item normal
         console.log('🔍 Processando item:', item);
         const produto = await Produto.findById(item.produto);
         if (!produto) {
