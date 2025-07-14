@@ -52,13 +52,18 @@ function calcularPrecoPersonalizada(metade1, metade2, tamanho, borda) {
 
 // Processa o item personalizado para salvar no pedido
 function processarItemPersonalizado(item) {
-  const precoUnitario = calcularPrecoPersonalizada(item.metade1, item.metade2, item.tamanho, item.borda);
+  // Garante que borda sempre tenha valor válido
+  let bordaFinal = item.borda;
+  if (!bordaFinal || bordaFinal === '' || bordaFinal === undefined) {
+    bordaFinal = 'Sem borda';
+  }
+  const precoUnitario = calcularPrecoPersonalizada(item.metade1, item.metade2, item.tamanho, bordaFinal);
   return {
     tipo: 'personalizada',
     metade1: item.metade1,
     metade2: item.metade2,
     tamanho: item.tamanho,
-    borda: item.borda || 'Sem borda',
+    borda: bordaFinal,
     quantidade: item.quantidade,
     precoUnitario,
     preco: precoUnitario * item.quantidade,
