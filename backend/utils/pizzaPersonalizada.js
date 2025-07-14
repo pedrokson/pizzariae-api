@@ -19,7 +19,7 @@ function calcularPrecoPersonalizada(metade1, metade2, tamanho, borda) {
   const precoMetade1 = (precosSabores[metade1] && precosSabores[metade1][tamanho]) ? precosSabores[metade1][tamanho] : precosSabores[metade1]?.default || 49.9;
   const precoMetade2 = (precosSabores[metade2] && precosSabores[metade2][tamanho]) ? precosSabores[metade2][tamanho] : precosSabores[metade2]?.default || 49.9;
   const precoBorda = borda && borda !== '' && borda !== 'Sem borda' ? (precosBorda[borda] || 0) : 0;
-  return (precoMetade1 / 2) + (precoMetade2 / 2) + precoBorda;
+  return Math.max(precoMetade1, precoMetade2) + precoBorda;
 }
 
 // Exemplo de uso no processamento do pedido
