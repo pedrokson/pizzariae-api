@@ -89,6 +89,14 @@ router.post("/", async (req, res) => {
 
     for (let item of itens) {
       if (item.tipo === "personalizada") {
+        // Calcula o preço da pizza personalizada no backend
+        const resultado = processarItemPersonalizado({
+          metade1: item.metade1,
+          metade2: item.metade2,
+          tamanho: item.tamanho,
+          borda: item.borda,
+          quantidade: item.quantidade,
+        });
         const itemProcessado = {
           tipo: "personalizada",
           metade1: item.metade1,
@@ -97,10 +105,10 @@ router.post("/", async (req, res) => {
           borda: item.borda,
           quantidade: item.quantidade,
           observacoes: item.observacoes,
-          preco: item.preco, // ← usa o preço calculado no frontend
-          nome: `Pizza ${item.metade1} + ${item.metade2}`,
+          preco: resultado.preco,
+          nome: resultado.nome,
         };
-        subtotal += item.preco * item.quantidade;
+        subtotal += resultado.preco * item.quantidade;
         itensProcessados.push(itemProcessado);
       } else {
         console.log("🔍 Processando item:", item);
