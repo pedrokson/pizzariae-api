@@ -25,10 +25,13 @@ router.get("/", async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.json(pedidos);
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+module.exports = router;
 
 // GET /api/pedidos/sincronizar - Endpoint de sincronização
 router.get("/sincronizar", async (req, res) => {
@@ -105,10 +108,10 @@ router.post("/", async (req, res) => {
           borda: item.borda,
           quantidade: item.quantidade,
           observacoes: item.observacoes,
+          precoUnitario: resultado.precoUnitario,
           preco: resultado.preco,
-          nome: resultado.nome,
         };
-        subtotal += resultado.preco * item.quantidade;
+        subtotal += resultado.preco;
         itensProcessados.push(itemProcessado);
       } else {
         console.log("🔍 Processando item:", item);
