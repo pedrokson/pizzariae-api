@@ -65,114 +65,59 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /api/pedidos - Criar novo pedido
+// Novo endpoint para aceitar pedidos do frontend (cliente embutido)
 router.post("/", async (req, res) => {
   try {
-    console.log("🛒 CRIANDO NOVO PEDIDO:", req.body);
-    const { cliente, itens, endereco, formaPagamento, entrega, observacoes } =
-      req.body;
-
-    // Verificar se cliente existe
-    console.log("👤 Verificando cliente:", cliente);
-    const clienteExiste = await Usuario.findById(cliente);
-    if (!clienteExiste) {
-      console.log("❌ Cliente não encontrado");
-      return res.status(400).json({ error: "Cliente não encontrado" });
-    }
-    console.log("✅ Cliente encontrado:", clienteExiste.nome);
-
-    // Gerar número do pedido
-    const totalPedidos = await Pedido.countDocuments();
-    const numeroPedido = String(totalPedidos + 1).padStart(6, "0");
-    console.log("🔢 Número do pedido gerado:", numeroPedido);
-
-    // Calcular valores dos itens
-    console.log("🧮 Calculando valores dos itens...");
-    let subtotal = 0;
-    const itensProcessados = [];
-
-    for (let item of itens) {
-      if (item.tipo === "personalizada") {
-        // Calcula o preço da pizza personalizada no backend
-        const resultado = processarItemPersonalizado({
-          metade1: item.metade1,
-          metade2: item.metade2,
-          tamanho: item.tamanho,
-          borda: item.borda,
-          quantidade: item.quantidade,
-        });
-        const itemProcessado = {
-          tipo: "personalizada",
-          metade1: item.metade1,
-          metade2: item.metade2,
-          tamanho: item.tamanho,
-          borda: item.borda,
-          quantidade: item.quantidade,
-          observacoes: item.observacoes,
-          precoUnitario: resultado.precoUnitario,
-          preco: resultado.preco,
-        };
-        subtotal += resultado.preco;
-        itensProcessados.push(itemProcessado);
-      } else {
-        console.log("🔍 Processando item:", item);
-        const produto = await Produto.findById(item.produto);
-        if (!produto) {
-          console.log("❌ Produto não encontrado:", item.produto);
-          return res
-            .status(400)
-            .json({ error: `Produto ${item.produto} não encontrado` });
-        }
-        console.log("✅ Produto encontrado:", produto.nome);
-        // Se tem tamanho específico, buscar preço do tamanho
-        let precoUnitario = item.precoUnitario;
-        if (item.tamanho && produto.tamanhos.length > 0) {
-          const tamanhoInfo = produto.tamanhos.find(
-            (t) => t.nome === item.tamanho
-          );
-          if (tamanhoInfo) {
-            precoUnitario = tamanhoInfo.preco;
-          }
-        }
-        const itemProcessado = {
-          produto: produto._id,
-          nome: produto.nome,
-          tamanho: item.tamanho,
-          quantidade: item.quantidade,
-          precoUnitario: precoUnitario,
-          observacoes: item.observacoes,
-        };
-        subtotal += precoUnitario * item.quantidade;
-        itensProcessados.push(itemProcessado);
-      }
-    }
-    // Calcular taxa de entrega (exemplo: R$ 5,00 para delivery)
-    const taxaEntrega = entrega.tipo === "delivery" ? 5.0 : 0;
-
-    const novoPedido = new Pedido({
-      numero: numeroPedido,
+    const {
       cliente,
-      itens: itensProcessados,
       endereco,
+      tipoEntrega,
       formaPagamento,
-      entrega,
-      observacoes,
-      valores: {
-        subtotal,
-        taxaEntrega,
-        desconto: 0,
-        total: subtotal + taxaEntrega,
+      trocoPara,
+      observacao,
+      itens,
+      dataHora
+    } = req.body;
+
+    // Mapeamento para o schema atual
+    const pedidoData = {
+      cliente: cliente, // salvar objeto embutido
+      endereco: {
+        rua: endereco.rua,
+        numero: endereco.numero,
+        bairro: endereco.bairro,
+        complemento: endereco.complemento,
+        cidade: endereco.cidade,
+        cep: endereco.cep,
+        estado: endereco.estado || "",
+        pontoReferencia: endereco.referencia || endereco.pontoReferencia || ""
       },
-    });
+      entrega: {
+        tipo: tipoEntrega === "entrega" ? "delivery" : "retirada"
+      },
+      status: "pendente",
+      formaPagamento: {
+        tipo: formaPagamento,
+        troco: trocoPara || null
+      },
+      observacoes: observacao || "",
+      itens: itens.map(item => ({
+        produto: item.produto || null,
+        nome: item.nome,
+        tamanho: item.tamanho,
+        quantidade: item.quantidade,
+        precoUnitario: item.precoUnitario,
+        observacoes: item.observacoes || ""
+      })),
+      horarios: {
+        pedido: dataHora ? new Date(dataHora) : new Date()
+      }
+    };
 
-    console.log("💾 Salvando pedido:", numeroPedido);
-    await novoPedido.save();
-    console.log("✅ Pedido salvo com sucesso!");
-
-    // Popular dados para resposta
-    await novoPedido.populate("cliente", "nome telefone email");
-    await novoPedido.populate("itens.produto", "nome categoria");
-
-    res.status(201).json(novoPedido);
+    // O cálculo de valores será feito pelo pre-save do schema
+    const pedido = new Pedido(pedidoData);
+    await pedido.save();
+    res.status(201).json(pedido);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
